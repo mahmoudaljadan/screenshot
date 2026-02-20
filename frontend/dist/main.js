@@ -57,9 +57,18 @@ function drawPreview(ctx, d) {
   drawOp(ctx, { kind: d.kind, payload: d.payload });
 }
 
+function canvasPoint(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: Math.round((e.clientX - rect.left) * scaleX),
+    y: Math.round((e.clientY - rect.top) * scaleY)
+  };
+}
+
 canvas.addEventListener('mousedown', (e) => {
-  const x = e.offsetX;
-  const y = e.offsetY;
+  const { x, y } = canvasPoint(e);
   const kind = toolEl.value;
   if (kind === 'text') {
     const text = prompt('Text');
@@ -72,8 +81,7 @@ canvas.addEventListener('mousedown', (e) => {
 
 canvas.addEventListener('mousemove', (e) => {
   if (!drag) return;
-  const x = e.offsetX;
-  const y = e.offsetY;
+  const { x, y } = canvasPoint(e);
   if (drag.kind === 'rect' || drag.kind === 'blur' || drag.kind === 'pixelate') {
     drag.payload.w = x - drag.startX;
     drag.payload.h = y - drag.startY;
