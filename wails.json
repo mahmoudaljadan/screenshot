@@ -1,0 +1,12 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "go-wails-shot",
+  "outputfilename": "go-wails-shot",
+  "frontend:install": "echo 'No frontend install step (vanilla static assets)'",
+  "frontend:build": "../scripts/sync_frontend_dist.sh",
+  "frontend:dev:watcher": "../scripts/sync_frontend_dist.sh",
+  "author": {
+    "name": "mohamoundaljadan",
+    "email": ""
+  }
+}

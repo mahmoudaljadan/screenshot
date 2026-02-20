@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Go Wails Shot</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header>
+    <h1>Go Wails Shot</h1>
+    <div class="controls">
+      <button id="capture">Capture</button>
+      <select id="tool">
+        <option value="rect">Rectangle</option>
+        <option value="line">Line</option>
+        <option value="arrow">Arrow</option>
+        <option value="text">Text</option>
+        <option value="blur">Blur</option>
+        <option value="pixelate">Pixelate</option>
+      </select>
+      <input id="color" type="color" value="#ff3b30" />
+      <button id="undo">Undo</button>
+      <button id="redo">Redo</button>
+      <button id="save">Save</button>
+    </div>
+  </header>
+  <main>
+    <canvas id="canvas" width="1280" height="720"></canvas>
+    <aside>
+      <h2>Operation Log</h2>
+      <pre id="ops"></pre>
+    </aside>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
