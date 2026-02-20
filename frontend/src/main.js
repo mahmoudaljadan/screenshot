@@ -39,11 +39,13 @@ function drawOp(ctx, op) {
   ctx.lineWidth = p.strokeWidth || 2;
   if (op.kind === 'rect') {
     ctx.strokeRect(p.x, p.y, p.w, p.h);
-  } else if (op.kind === 'line' || op.kind === 'arrow') {
+  } else if (op.kind === 'line') {
     ctx.beginPath();
     ctx.moveTo(p.x1, p.y1);
     ctx.lineTo(p.x2, p.y2);
     ctx.stroke();
+  } else if (op.kind === 'arrow') {
+    drawArrow(ctx, p);
   } else if (op.kind === 'text') {
     ctx.font = `${p.size || 18}px ui-monospace`;
     ctx.fillText(p.text || 'Text', p.x, p.y);
@@ -55,6 +57,34 @@ function drawOp(ctx, op) {
 
 function drawPreview(ctx, d) {
   drawOp(ctx, { kind: d.kind, payload: d.payload });
+}
+
+function drawArrow(ctx, p) {
+  const x1 = p.x1;
+  const y1 = p.y1;
+  const x2 = p.x2;
+  const y2 = p.y2;
+  const headSize = p.headSize || 14;
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+
+  const a1 = angle + Math.PI * 0.82;
+  const a2 = angle - Math.PI * 0.82;
+  const hx1 = x2 + headSize * Math.cos(a1);
+  const hy1 = y2 + headSize * Math.sin(a1);
+  const hx2 = x2 + headSize * Math.cos(a2);
+  const hy2 = y2 + headSize * Math.sin(a2);
+
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(hx1, hy1);
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(hx2, hy2);
+  ctx.stroke();
 }
 
 function canvasPoint(e) {
@@ -92,6 +122,9 @@ canvas.addEventListener('mousemove', (e) => {
     drag.payload.y2 = y;
     drag.payload.color = colorEl.value;
     drag.payload.strokeWidth = 2;
+    if (drag.kind === 'arrow') {
+      drag.payload.headSize = 14;
+    }
   }
   draw();
 });
