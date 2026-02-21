@@ -44,7 +44,8 @@ function backend() {
     async ExitEditorMode() {},
     async CheckCapturePermission() { return { granted: true }; },
     async OpenCapturePermissionSettings() {},
-    async LoadCaptureImage() { return ''; }
+    async LoadCaptureImage() { return ''; },
+    async PromptSavePath() { return ''; }
   };
 }
 
@@ -499,12 +500,19 @@ saveBtn.addEventListener('click', async () => {
     return;
   }
   try {
+    const chosenPath = await backend().PromptSavePath('png');
+    debugLog('PromptSavePath result', chosenPath);
+    if (!chosenPath) {
+      debugLog('Save cancelled by user');
+      return;
+    }
+
     const req = {
       baseImagePath,
       ops,
       format: 'png',
       quality: 90,
-      outputPath: ''
+      outputPath: chosenPath
     };
     debugLog('Save request', req);
     const result = await backend().SaveAnnotated(req);

@@ -8,6 +8,7 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
+	stdruntime "runtime"
 	"time"
 
 	appsvc "github.com/mohamoundaljadan/screenshot/internal/app"
@@ -149,4 +150,43 @@ func (a *App) LoadCaptureImage(path string) (string, error) {
 	}
 	encoded := base64.StdEncoding.EncodeToString(b)
 	return fmt.Sprintf("data:%s;base64,%s", contentType, encoded), nil
+}
+
+func (a *App) PromptSavePath(format string) (string, error) {
+	if a.ctx == nil {
+		return "", fmt.Errorf("app context is not ready")
+	}
+
+	ext := ".png"
+	display := "PNG Image"
+	pattern := "*.png"
+	if format == "jpg" || format == "jpeg" {
+		ext = ".jpg"
+		display = "JPEG Image"
+		pattern = "*.jpg;*.jpeg"
+	}
+
+	now := time.Now().Format("20060102-150405")
+	defaultFilename := "capture-" + now + ext
+
+	defaultDir := ""
+	home, err := os.UserHomeDir()
+	if err == nil && home != "" {
+		switch stdruntime.GOOS {
+		case "darwin", "linux", "windows":
+			defaultDir = filepath.Join(home, "Pictures", "go-wails-shot")
+		default:
+			defaultDir = home
+		}
+	}
+
+	log.Printf("[app] PromptSavePath format=%s defaultDir=%s", format, defaultDir)
+	return runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:            "Save Screenshot",
+		DefaultDirectory: defaultDir,
+		DefaultFilename:  defaultFilename,
+		Filters: []runtime.FileFilter{
+			{DisplayName: display, Pattern: pattern},
+		},
+	})
 }
