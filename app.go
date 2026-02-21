@@ -2,8 +2,16 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
+	"fmt"
+	"log"
+	"mime"
+	"os"
+	"path/filepath"
+	"time"
 
 	appsvc "github.com/mohamoundaljadan/screenshot/internal/app"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type App struct {
@@ -21,10 +29,30 @@ func NewApp(version string) (*App, error) {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	runtime.WindowSetSize(ctx, 560, 140)
+	runtime.WindowCenter(ctx)
 }
 
 func (a *App) StartCapture(mode string) (appsvc.CaptureResult, error) {
-	return a.svc.StartCapture(mode)
+	log.Printf("[app] StartCapture requested mode=%s", mode)
+	if a.ctx != nil {
+		log.Printf("[app] hiding window before capture")
+		runtime.Hide(a.ctx)
+		// Allow the OS compositor to remove our app window before capture.
+		time.Sleep(420 * time.Millisecond)
+	}
+	result, err := a.svc.StartCapture(mode)
+	if a.ctx != nil {
+		log.Printf("[app] showing window after capture")
+		runtime.Show(a.ctx)
+		runtime.WindowUnminimise(a.ctx)
+	}
+	if err != nil {
+		log.Printf("[app] StartCapture failed mode=%s err=%v", mode, err)
+	} else {
+		log.Printf("[app] StartCapture success mode=%s image=%s", mode, result.ImagePath)
+	}
+	return result, err
 }
 
 func (a *App) SaveAnnotated(req appsvc.ExportRequest) (appsvc.ExportResult, error) {
@@ -37,4 +65,52 @@ func (a *App) GetAppState() (appsvc.AppState, error) {
 
 func (a *App) SetPreference(key string, value string) error {
 	return a.svc.SetPreference(key, value)
+}
+
+func (a *App) EnterEditorMode() {
+	if a.ctx == nil {
+		return
+	}
+	log.Printf("[app] EnterEditorMode fullscreen")
+	runtime.WindowFullscreen(a.ctx)
+}
+
+func (a *App) ExitEditorMode() {
+	if a.ctx == nil {
+		return
+	}
+	log.Printf("[app] ExitEditorMode launcher-size")
+	runtime.WindowUnfullscreen(a.ctx)
+	runtime.WindowSetSize(a.ctx, 560, 140)
+	runtime.WindowCenter(a.ctx)
+}
+
+func (a *App) CheckCapturePermission() (appsvc.CapturePermissionStatus, error) {
+	status, err := a.svc.CheckCapturePermission()
+	if err != nil {
+		log.Printf("[app] CheckCapturePermission failed err=%v", err)
+	} else {
+		log.Printf("[app] CheckCapturePermission granted=%v message=%q", status.Granted, status.Message)
+	}
+	return status, err
+}
+
+func (a *App) OpenCapturePermissionSettings() error {
+	log.Printf("[app] OpenCapturePermissionSettings requested")
+	return a.svc.OpenCapturePermissionSettings()
+}
+
+func (a *App) LoadCaptureImage(path string) (string, error) {
+	log.Printf("[app] LoadCaptureImage path=%s", path)
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	ext := filepath.Ext(path)
+	contentType := mime.TypeByExtension(ext)
+	if contentType == "" {
+		contentType = "image/png"
+	}
+	encoded := base64.StdEncoding.EncodeToString(b)
+	return fmt.Sprintf("data:%s;base64,%s", contentType, encoded), nil
 }

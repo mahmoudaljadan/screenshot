@@ -12,6 +12,7 @@ import (
 	"github.com/mohamoundaljadan/screenshot/internal/platform/darwin"
 	"github.com/mohamoundaljadan/screenshot/internal/platform/linuxwayland"
 	"github.com/mohamoundaljadan/screenshot/internal/platform/linuxx11"
+	"github.com/mohamoundaljadan/screenshot/internal/platform/permissions"
 )
 
 type Adapter interface {
@@ -22,6 +23,7 @@ type Adapter interface {
 
 type Manager struct {
 	adapter Adapter
+	perm    permissions.Checker
 	tmpDir  string
 }
 
@@ -31,6 +33,7 @@ func NewManager(tmpDir string) *Manager {
 	}
 	return &Manager{
 		adapter: chooseAdapter(),
+		perm:    permissions.NewChecker(),
 		tmpDir:  tmpDir,
 	}
 }
@@ -43,6 +46,14 @@ func (m *Manager) Capture(ctx context.Context, mode string) (core.CaptureResult,
 	timestamp := time.Now().UTC().Format("20060102T150405.000Z")
 	outputPath := filepath.Join(m.tmpDir, fmt.Sprintf("capture-%s.png", timestamp))
 	return m.adapter.Capture(ctx, mode, outputPath)
+}
+
+func (m *Manager) CheckCapturePermission(ctx context.Context) (core.CapturePermissionStatus, error) {
+	return m.perm.CheckCapture(ctx)
+}
+
+func (m *Manager) OpenCapturePermissionSettings(ctx context.Context) error {
+	return m.perm.OpenCaptureSettings(ctx)
 }
 
 func chooseAdapter() Adapter {

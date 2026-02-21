@@ -22,8 +22,8 @@ func main() {
 
 	err = wails.Run(&options.App{
 		Title:  "Go Wails Shot",
-		Width:  1280,
-		Height: 800,
+		Width:  560,
+		Height: 140,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

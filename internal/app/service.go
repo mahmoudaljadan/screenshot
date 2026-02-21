@@ -40,3 +40,11 @@ func (s *Service) GetAppState() (AppState, error) {
 func (s *Service) SetPreference(key string, value string) error {
 	return s.prefs.Set(key, value)
 }
+
+func (s *Service) CheckCapturePermission() (CapturePermissionStatus, error) {
+	return s.capture.CheckCapturePermission(context.Background())
+}
+
+func (s *Service) OpenCapturePermissionSettings() error {
+	return s.capture.OpenCapturePermissionSettings(context.Background())
+}

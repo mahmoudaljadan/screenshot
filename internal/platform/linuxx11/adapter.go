@@ -19,8 +19,8 @@ func NewAdapter() *Adapter { return &Adapter{} }
 func (a *Adapter) SessionType() string { return "x11" }
 func (a *Adapter) WaylandBeta() bool   { return false }
 
-func (a *Adapter) Capture(ctx context.Context, _ string, outputPath string) (core.CaptureResult, error) {
-	if err := runCaptureTool(ctx, outputPath); err != nil {
+func (a *Adapter) Capture(ctx context.Context, mode string, outputPath string) (core.CaptureResult, error) {
+	if err := runCaptureTool(ctx, mode, outputPath); err != nil {
 		return core.CaptureResult{}, err
 	}
 	f, err := os.Open(outputPath)
@@ -48,15 +48,25 @@ func (a *Adapter) Capture(ctx context.Context, _ string, outputPath string) (cor
 	}, nil
 }
 
-func runCaptureTool(ctx context.Context, outputPath string) error {
+func runCaptureTool(ctx context.Context, mode, outputPath string) error {
 	if _, err := exec.LookPath("maim"); err == nil {
-		if out, runErr := exec.CommandContext(ctx, "maim", outputPath).CombinedOutput(); runErr != nil {
+		args := []string{}
+		if mode == "region" {
+			args = append(args, "-s")
+		}
+		args = append(args, outputPath)
+		if out, runErr := exec.CommandContext(ctx, "maim", args...).CombinedOutput(); runErr != nil {
 			return &core.AppError{Code: core.ErrCaptureUnavailable, Message: "maim failed: " + string(out)}
 		}
 		return nil
 	}
 	if _, err := exec.LookPath("scrot"); err == nil {
-		if out, runErr := exec.CommandContext(ctx, "scrot", outputPath).CombinedOutput(); runErr != nil {
+		args := []string{}
+		if mode == "region" {
+			args = append(args, "-s")
+		}
+		args = append(args, outputPath)
+		if out, runErr := exec.CommandContext(ctx, "scrot", args...).CombinedOutput(); runErr != nil {
 			return &core.AppError{Code: core.ErrCaptureUnavailable, Message: "scrot failed: " + string(out)}
 		}
 		return nil

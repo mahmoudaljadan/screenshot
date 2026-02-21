@@ -47,6 +47,13 @@ type AppState struct {
 	Version     string `json:"version"`
 }
 
+type CapturePermissionStatus struct {
+	Granted      bool   `json:"granted"`
+	CanPrompt    bool   `json:"canPrompt"`
+	Message      string `json:"message"`
+	SettingsHint string `json:"settingsHint"`
+}
+
 type AppError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
@@ -60,6 +67,7 @@ const (
 	ErrInvalidOpKind       = "ERR_INVALID_OP_KIND"
 	ErrInvalidOpPayload    = "ERR_INVALID_OP_PAYLOAD"
 	ErrCaptureUnavailable  = "ERR_CAPTURE_UNAVAILABLE"
+	ErrCapturePermission   = "ERR_CAPTURE_PERMISSION"
 	ErrWaylandPrerequisite = "ERR_WAYLAND_PREREQUISITE"
 	ErrEncodeFailed        = "ERR_ENCODE_FAILED"
 	ErrDecodeFailed        = "ERR_DECODE_FAILED"
