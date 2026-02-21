@@ -2,12 +2,15 @@ package exporter
 
 import (
 	"context"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"image/png"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/mohamoundaljadan/screenshot/internal/annotate"
 	"github.com/mohamoundaljadan/screenshot/internal/core"
@@ -48,7 +51,7 @@ func (s *Service) Export(_ context.Context, req core.ExportRequest) (core.Export
 		format = "png"
 	}
 	if req.OutputPath == "" {
-		req.OutputPath = defaultOutputPath(req.BaseImagePath, format)
+		req.OutputPath = defaultOutputPath(format)
 	}
 	if err := os.MkdirAll(filepath.Dir(req.OutputPath), 0o755); err != nil {
 		return core.ExportResult{}, &core.AppError{Code: core.ErrWriteFailed, Message: err.Error()}
@@ -80,13 +83,21 @@ func (s *Service) Export(_ context.Context, req core.ExportRequest) (core.Export
 	if err != nil {
 		return core.ExportResult{}, &core.AppError{Code: core.ErrReadFailed, Message: err.Error()}
 	}
+	log.Printf("[export] saved format=%s bytes=%d output=%s", format, stat.Size(), req.OutputPath)
 	return core.ExportResult{OutputPath: req.OutputPath, Bytes: stat.Size(), Format: format}, nil
 }
 
-func defaultOutputPath(basePath, format string) string {
+func defaultOutputPath(format string) string {
 	ext := ".png"
 	if format == "jpg" || format == "jpeg" {
 		ext = ".jpg"
 	}
-	return strings.TrimSuffix(basePath, filepath.Ext(basePath)) + "-annotated" + ext
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		ts := time.Now().Format("20060102-150405")
+		return filepath.Join(os.TempDir(), fmt.Sprintf("go-wails-shot-%s%s", ts, ext))
+	}
+	dir := filepath.Join(home, "Pictures", "go-wails-shot")
+	ts := time.Now().Format("20060102-150405")
+	return filepath.Join(dir, fmt.Sprintf("capture-%s%s", ts, ext))
 }

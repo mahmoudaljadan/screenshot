@@ -75,6 +75,42 @@ func (a *App) EnterEditorMode() {
 	runtime.WindowFullscreen(a.ctx)
 }
 
+func (a *App) EnterScreenEditorMode() {
+	a.EnterEditorMode()
+}
+
+func (a *App) EnterRegionEditorMode(imageWidth int, imageHeight int) {
+	if a.ctx == nil {
+		return
+	}
+	log.Printf("[app] EnterRegionEditorMode image=%dx%d", imageWidth, imageHeight)
+	runtime.WindowUnfullscreen(a.ctx)
+
+	// Keep most of the desktop visible: show a compact floating editor window.
+	const maxW = 1280
+	const maxH = 900
+	const minW = 520
+	const minH = 360
+	w := imageWidth + 32
+	h := imageHeight + 88
+	if w < minW {
+		w = minW
+	}
+	if h < minH {
+		h = minH
+	}
+	if w > maxW {
+		w = maxW
+	}
+	if h > maxH {
+		h = maxH
+	}
+	runtime.WindowSetSize(a.ctx, w, h)
+	runtime.WindowCenter(a.ctx)
+	runtime.Show(a.ctx)
+	runtime.WindowUnminimise(a.ctx)
+}
+
 func (a *App) ExitEditorMode() {
 	if a.ctx == nil {
 		return

@@ -23,6 +23,7 @@ func TestExportDeterministic(t *testing.T) {
 	req := core.ExportRequest{
 		BaseImagePath: base,
 		Format:        "png",
+		OutputPath:    filepath.Join(tmp, "annotated.png"),
 		Ops: []core.AnnotationOp{
 			{ID: "b", Kind: "line", Z: 2, Payload: json.RawMessage(`{"x1":10,"y1":10,"x2":60,"y2":60,"color":"#00ff00","strokeWidth":3}`)},
 			{ID: "a", Kind: "rect", Z: 1, Payload: json.RawMessage(`{"x":20,"y":15,"w":40,"h":30,"color":"#ff0000","strokeWidth":2}`)},

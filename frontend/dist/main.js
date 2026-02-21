@@ -39,6 +39,8 @@ function backend() {
       return null;
     },
     async EnterEditorMode() {},
+    async EnterScreenEditorMode() {},
+    async EnterRegionEditorMode() {},
     async ExitEditorMode() {},
     async CheckCapturePermission() { return { granted: true }; },
     async OpenCapturePermissionSettings() {},
@@ -334,8 +336,13 @@ async function beginCapture(mode) {
     baseImage = img;
     imageView = null;
 
-    debugLog('EnterEditorMode -> fullscreen (post-capture)');
-    await backend().EnterEditorMode();
+    if (mode === 'screen') {
+      debugLog('EnterScreenEditorMode -> fullscreen (post-capture)');
+      await backend().EnterScreenEditorMode();
+    } else {
+      debugLog('EnterRegionEditorMode -> floating (post-capture)', { w: result.width, h: result.height });
+      await backend().EnterRegionEditorMode(result.width, result.height);
+    }
     enterEditor();
 
     if (mode === 'screen' || mode === 'region') {
